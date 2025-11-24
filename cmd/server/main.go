@@ -2,6 +2,7 @@ package main
 
 import (
 	// Import generated docs
+	_ "go-rest/docs"
 	"go-rest/internal/database"
 	"go-rest/internal/routes"
 

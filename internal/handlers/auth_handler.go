@@ -4,6 +4,7 @@ import (
 	"go-rest/internal/database"
 	"go-rest/internal/models"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -11,46 +12,55 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var jwtSecret = []byte("your_secret_key") // In production, use environment variable
+// jwtSecret is removed as it's replaced by os.Getenv("JWT_SECRET")
 
-// Register creates a new user
+// Register godoc
+// @Summary      Register a new user
+// @Description  Register a new user with username and password
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        input  body      models.User  true  "User credentials"
+// @Success      201    {object}  models.User
+// @Failure      400    {object}  gin.H
+// @Failure      500    {object}  gin.H
+// @Router       /register [post]
 func Register(c *gin.Context) {
-	var input struct {
-		Username string `json:"username" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&input); err != nil {
+	var user models.User
+	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
-
-	user := models.User{
-		Username: input.Username,
-		Password: string(hashedPassword),
-	}
+	user.Password = string(hashedPassword)
 
 	if err := database.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Username already exists"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
+	c.JSON(http.StatusCreated, user)
 }
 
-// Login authenticates a user and returns a JWT
+// Login godoc
+// @Summary      Login
+// @Description  Login with username and password to get JWT token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        input  body      models.User  true  "User credentials"
+// @Success      200    {object}  gin.H
+// @Failure      400    {object}  gin.H
+// @Failure      401    {object}  gin.H
+// @Failure      500    {object}  gin.H
+// @Router       /login [post]
 func Login(c *gin.Context) {
-	var input struct {
-		Username string `json:"username" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
-
+	var input models.User
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -73,7 +83,7 @@ func Login(c *gin.Context) {
 		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	})
 
-	tokenString, err := token.SignedString(jwtSecret)
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return

@@ -9,6 +9,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CreateSupplier godoc
+// @Summary      Create a supplier
+// @Description  Create a new supplier
+// @Tags         suppliers
+// @Accept       json
+// @Produce      json
+// @Param        supplier  body      models.Supplier  true  "Supplier JSON"
+// @Success      201       {object}  models.Supplier
+// @Failure      400       {object}  gin.H
+// @Failure      500       {object}  gin.H
+// @Security     BearerAuth
+// @Router       /suppliers [post]
 func CreateSupplier(c *gin.Context) {
 	var supplier models.Supplier
 	if err := c.ShouldBindJSON(&supplier); err != nil {
@@ -24,6 +36,20 @@ func CreateSupplier(c *gin.Context) {
 	c.JSON(http.StatusCreated, supplier)
 }
 
+// GetSuppliers godoc
+// @Summary      List suppliers
+// @Description  Get all suppliers with pagination, search, and sort
+// @Tags         suppliers
+// @Produce      json
+// @Param        page       query     int     false  "Page number"
+// @Param        page_size  query     int     false  "Page size"
+// @Param        search     query     string  false  "Search term"
+// @Param        sort       query     string  false  "Sort field"
+// @Param        order      query     string  false  "Sort order (asc/desc)"
+// @Success      200  {array}   models.Supplier
+// @Failure      500  {object}  gin.H
+// @Security     BearerAuth
+// @Router       /suppliers [get]
 func GetSuppliers(c *gin.Context) {
 	var suppliers []models.Supplier
 	query := database.DB.Model(&models.Supplier{})
@@ -38,4 +64,71 @@ func GetSuppliers(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, suppliers)
+}
+
+// UpdateSupplier godoc
+// @Summary      Update a supplier
+// @Description  Update a supplier by ID
+// @Tags         suppliers
+// @Accept       json
+// @Produce      json
+// @Param        id        path      string           true  "Supplier ID"
+// @Param        supplier  body      models.Supplier  true  "Supplier JSON"
+// @Success      200       {object}  models.Supplier
+// @Failure      400       {object}  gin.H
+// @Failure      404       {object}  gin.H
+// @Failure      500       {object}  gin.H
+// @Security     BearerAuth
+// @Router       /suppliers/{id} [put]
+func UpdateSupplier(c *gin.Context) {
+	id := c.Param("id")
+	var supplier models.Supplier
+	if err := database.DB.First(&supplier, "id = ?", id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Supplier not found"})
+		return
+	}
+
+	var input models.Supplier
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	supplier.Name = input.Name
+	supplier.ContactInfo = input.ContactInfo
+	supplier.Address = input.Address
+
+	if err := database.DB.Save(&supplier).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, supplier)
+}
+
+// DeleteSupplier godoc
+// @Summary      Delete a supplier
+// @Description  Delete a supplier by ID
+// @Tags         suppliers
+// @Produce      json
+// @Param        id   path      string  true  "Supplier ID"
+// @Success      200  {object}  gin.H
+// @Failure      404  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Security     BearerAuth
+// @Router       /suppliers/{id} [delete]
+func DeleteSupplier(c *gin.Context) {
+	id := c.Param("id")
+	var supplier models.Supplier
+	if err := database.DB.First(&supplier, "id = ?", id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Supplier not found"})
+		return
+	}
+
+	if err := database.DB.Delete(&supplier).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Supplier deleted successfully"})
 }

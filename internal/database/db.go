@@ -23,9 +23,9 @@ func ConnectDatabase() {
 
 	// Drop tables to migrate to UUID
 	// WARNING: This deletes all data!
-	database.Migrator().DropTable(&models.Item{}, &models.User{}, &models.Warehouse{}, &models.Supplier{}, &models.Discount{}, &models.Media{}, &models.Variant{}, &models.Option{}, &models.Review{}, &models.Favorite{}, &models.Inventory{}, &models.Category{}, &models.PurchaseOrder{}, &models.PurchaseOrderItem{}, &models.Order{}, &models.OrderItem{})
+	database.Migrator().DropTable(&models.Item{}, &models.User{}, &models.Warehouse{}, &models.Supplier{}, &models.Discount{}, &models.Media{}, &models.Variant{}, &models.Option{}, &models.Review{}, &models.Favorite{}, &models.Inventory{}, &models.Category{}, &models.PurchaseOrder{}, &models.PurchaseOrderItem{}, &models.Order{}, &models.OrderItem{}, &models.Role{}, &models.Permission{})
 
-	err = database.AutoMigrate(&models.Item{}, &models.User{}, &models.Warehouse{}, &models.Supplier{}, &models.Discount{}, &models.Media{}, &models.Variant{}, &models.Option{}, &models.Review{}, &models.Favorite{}, &models.Inventory{}, &models.Category{}, &models.PurchaseOrder{}, &models.PurchaseOrderItem{}, &models.Order{}, &models.OrderItem{})
+	err = database.AutoMigrate(&models.Item{}, &models.User{}, &models.Warehouse{}, &models.Supplier{}, &models.Discount{}, &models.Media{}, &models.Variant{}, &models.Option{}, &models.Review{}, &models.Favorite{}, &models.Inventory{}, &models.Category{}, &models.PurchaseOrder{}, &models.PurchaseOrderItem{}, &models.Order{}, &models.OrderItem{}, &models.Role{}, &models.Permission{})
 	if err != nil {
 		log.Fatal("Failed to migrate database!", err)
 	}

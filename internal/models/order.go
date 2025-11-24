@@ -9,6 +9,7 @@ import (
 type Order struct {
 	Base
 	UserID        uuid.UUID   `json:"user_id"`
+	WarehouseID   uuid.UUID   `json:"warehouse_id"`
 	TotalAmount   float64     `json:"total_amount"`
 	Status        string      `json:"status"` // Completed, Refunded
 	PaymentMethod string      `json:"payment_method"`

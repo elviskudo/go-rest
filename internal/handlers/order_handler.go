@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"go-rest/internal/database"
 	"go-rest/internal/models"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 
 func CreateOrder(c *gin.Context) {
 	var input struct {
+		WarehouseID   string `json:"warehouse_id"`
 		PaymentMethod string `json:"payment_method"`
 		Items         []struct {
 			ItemID    string  `json:"item_id"`
@@ -32,42 +34,43 @@ func CreateOrder(c *gin.Context) {
 		return
 	}
 
-	// Calculate total amount and prepare items
-	var totalAmount float64
-	var orderItems []models.OrderItem
-
 	// Transaction to create order and decrease inventory
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
+		var totalAmount float64
+		var orderItems []models.OrderItem
+
 		for _, item := range input.Items {
+			// Check inventory
+			var inventory models.Inventory
+			if err := tx.Where("item_id = ? AND warehouse_id = ?", item.ItemID, input.WarehouseID).First(&inventory).Error; err != nil {
+				return errors.New("item not found in warehouse")
+			}
+
+			if inventory.Quantity < item.Quantity {
+				return errors.New("insufficient stock for item: " + item.ItemID)
+			}
+
+			// Deduct stock
+			inventory.Quantity -= item.Quantity
+			if err := tx.Save(&inventory).Error; err != nil {
+				return err
+			}
+
 			totalAmount += float64(item.Quantity) * item.UnitPrice
 			orderItems = append(orderItems, models.OrderItem{
 				ItemID:    uuid.MustParse(item.ItemID),
 				Quantity:  item.Quantity,
 				UnitPrice: item.UnitPrice,
 			})
-
-			// Decrease inventory (simplified: assume taking from first available warehouse or specific logic needed)
-			// For POS, we usually know the warehouse (store location).
-			// Let's assume a default warehouse or pass it in input.
-			// For simplicity here, we'll just find ANY inventory and decrease it (FIFO logic could apply but let's keep it simple)
-			// Actually, let's just pick the first inventory record with enough stock.
-
-			var inventory models.Inventory
-			if err := tx.Where("item_id = ? AND quantity >= ?", item.ItemID, item.Quantity).First(&inventory).Error; err != nil {
-				return gorm.ErrInvalidData // Not enough stock
-			}
-
-			inventory.Quantity -= item.Quantity
-			if err := tx.Save(&inventory).Error; err != nil {
-				return err
-			}
 		}
 
+		// Create Order
 		order := models.Order{
 			UserID:        userID.(uuid.UUID),
+			WarehouseID:   uuid.MustParse(input.WarehouseID),
+			TotalAmount:   totalAmount,
 			Status:        "Completed",
 			PaymentMethod: input.PaymentMethod,
-			TotalAmount:   totalAmount,
 			Date:          time.Now(),
 			Items:         orderItems,
 		}

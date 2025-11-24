@@ -8,6 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetDashboardSummary godoc
+// @Summary      Get dashboard summary
+// @Description  Get counts of items, warehouses, users, suppliers, and low stock items
+// @Tags         reports
+// @Produce      json
+// @Success      200  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Security     BearerAuth
+// @Router       /reports/dashboard [get]
 func GetDashboardSummary(c *gin.Context) {
 	var itemCount int64
 	database.DB.Model(&models.Item{}).Count(&itemCount)
@@ -26,10 +35,10 @@ func GetDashboardSummary(c *gin.Context) {
 	database.DB.Model(&models.Inventory{}).Where("quantity < ?", 10).Count(&lowStockCount)
 
 	c.JSON(http.StatusOK, gin.H{
-		"total_items":      itemCount,
-		"total_warehouses": warehouseCount,
-		"total_users":      userCount,
-		"total_suppliers":  supplierCount,
-		"low_stock_items":  lowStockCount,
+		"items":      itemCount,
+		"warehouses": warehouseCount,
+		"users":      userCount,
+		"suppliers":  supplierCount,
+		"low_stock":  lowStockCount,
 	})
 }

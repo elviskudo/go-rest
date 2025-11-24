@@ -13,17 +13,19 @@ import (
 // @Summary      Create a supplier
 // @Description  Create a new supplier
 // @Tags         suppliers
-// @Accept       json
+// @Accept       x-www-form-urlencoded
 // @Produce      json
-// @Param        supplier  body      models.Supplier  true  "Supplier JSON"
-// @Success      201       {object}  models.Supplier
-// @Failure      400       {object}  gin.H
-// @Failure      500       {object}  gin.H
+// @Param        name          formData  string  true  "Supplier Name"
+// @Param        contact_info  formData  string  true  "Contact Info"
+// @Param        address       formData  string  true  "Address"
+// @Success      201           {object}  models.Supplier
+// @Failure      400           {object}  gin.H
+// @Failure      500           {object}  gin.H
 // @Security     BearerAuth
 // @Router       /suppliers [post]
 func CreateSupplier(c *gin.Context) {
 	var supplier models.Supplier
-	if err := c.ShouldBindJSON(&supplier); err != nil {
+	if err := c.ShouldBind(&supplier); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -70,14 +72,16 @@ func GetSuppliers(c *gin.Context) {
 // @Summary      Update a supplier
 // @Description  Update a supplier by ID
 // @Tags         suppliers
-// @Accept       json
+// @Accept       x-www-form-urlencoded
 // @Produce      json
-// @Param        id        path      string           true  "Supplier ID"
-// @Param        supplier  body      models.Supplier  true  "Supplier JSON"
-// @Success      200       {object}  models.Supplier
-// @Failure      400       {object}  gin.H
-// @Failure      404       {object}  gin.H
-// @Failure      500       {object}  gin.H
+// @Param        id            path      string  true  "Supplier ID"
+// @Param        name          formData  string  true  "Supplier Name"
+// @Param        contact_info  formData  string  true  "Contact Info"
+// @Param        address       formData  string  true  "Address"
+// @Success      200           {object}  models.Supplier
+// @Failure      400           {object}  gin.H
+// @Failure      404           {object}  gin.H
+// @Failure      500           {object}  gin.H
 // @Security     BearerAuth
 // @Router       /suppliers/{id} [put]
 func UpdateSupplier(c *gin.Context) {
@@ -89,7 +93,7 @@ func UpdateSupplier(c *gin.Context) {
 	}
 
 	var input models.Supplier
-	if err := c.ShouldBindJSON(&input); err != nil {
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

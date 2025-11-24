@@ -12,17 +12,18 @@ import (
 // @Summary      Create a category
 // @Description  Create a new product category
 // @Tags         categories
-// @Accept       json
+// @Accept       x-www-form-urlencoded
 // @Produce      json
-// @Param        category  body      models.Category  true  "Category JSON"
-// @Success      201       {object}  models.Category
-// @Failure      400       {object}  gin.H
-// @Failure      500       {object}  gin.H
+// @Param        name         formData  string  true  "Category Name"
+// @Param        description  formData  string  false "Category Description"
+// @Success      201          {object}  models.Category
+// @Failure      400          {object}  gin.H
+// @Failure      500          {object}  gin.H
 // @Security     BearerAuth
 // @Router       /categories [post]
 func CreateCategory(c *gin.Context) {
 	var category models.Category
-	if err := c.ShouldBindJSON(&category); err != nil {
+	if err := c.ShouldBind(&category); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -58,14 +59,15 @@ func GetCategories(c *gin.Context) {
 // @Summary      Update a category
 // @Description  Update a product category by ID
 // @Tags         categories
-// @Accept       json
+// @Accept       x-www-form-urlencoded
 // @Produce      json
-// @Param        id        path      string           true  "Category ID"
-// @Param        category  body      models.Category  true  "Category JSON"
-// @Success      200       {object}  models.Category
-// @Failure      400       {object}  gin.H
-// @Failure      404       {object}  gin.H
-// @Failure      500       {object}  gin.H
+// @Param        id           path      string  true  "Category ID"
+// @Param        name         formData  string  true  "Category Name"
+// @Param        description  formData  string  false "Category Description"
+// @Success      200          {object}  models.Category
+// @Failure      400          {object}  gin.H
+// @Failure      404          {object}  gin.H
+// @Failure      500          {object}  gin.H
 // @Security     BearerAuth
 // @Router       /categories/{id} [put]
 func UpdateCategory(c *gin.Context) {
@@ -77,7 +79,7 @@ func UpdateCategory(c *gin.Context) {
 	}
 
 	var input models.Category
-	if err := c.ShouldBindJSON(&input); err != nil {
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

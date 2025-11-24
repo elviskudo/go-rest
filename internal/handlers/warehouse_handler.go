@@ -13,17 +13,19 @@ import (
 // @Summary      Create a warehouse
 // @Description  Create a new warehouse
 // @Tags         warehouses
-// @Accept       json
+// @Accept       x-www-form-urlencoded
 // @Produce      json
-// @Param        warehouse  body      models.Warehouse  true  "Warehouse JSON"
-// @Success      201        {object}  models.Warehouse
-// @Failure      400        {object}  gin.H
-// @Failure      500        {object}  gin.H
+// @Param        name      formData  string  true  "Warehouse Name"
+// @Param        location  formData  string  true  "Location"
+// @Param        capacity  formData  int     true  "Capacity"
+// @Success      201       {object}  models.Warehouse
+// @Failure      400       {object}  gin.H
+// @Failure      500       {object}  gin.H
 // @Security     BearerAuth
 // @Router       /warehouses [post]
 func CreateWarehouse(c *gin.Context) {
 	var warehouse models.Warehouse
-	if err := c.ShouldBindJSON(&warehouse); err != nil {
+	if err := c.ShouldBind(&warehouse); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -70,14 +72,16 @@ func GetWarehouses(c *gin.Context) {
 // @Summary      Update a warehouse
 // @Description  Update a warehouse by ID
 // @Tags         warehouses
-// @Accept       json
+// @Accept       x-www-form-urlencoded
 // @Produce      json
-// @Param        id         path      string            true  "Warehouse ID"
-// @Param        warehouse  body      models.Warehouse  true  "Warehouse JSON"
-// @Success      200        {object}  models.Warehouse
-// @Failure      400        {object}  gin.H
-// @Failure      404        {object}  gin.H
-// @Failure      500        {object}  gin.H
+// @Param        id        path      string  true  "Warehouse ID"
+// @Param        name      formData  string  true  "Warehouse Name"
+// @Param        location  formData  string  true  "Location"
+// @Param        capacity  formData  int     true  "Capacity"
+// @Success      200       {object}  models.Warehouse
+// @Failure      400       {object}  gin.H
+// @Failure      404       {object}  gin.H
+// @Failure      500       {object}  gin.H
 // @Security     BearerAuth
 // @Router       /warehouses/{id} [put]
 func UpdateWarehouse(c *gin.Context) {
@@ -89,7 +93,7 @@ func UpdateWarehouse(c *gin.Context) {
 	}
 
 	var input models.Warehouse
-	if err := c.ShouldBindJSON(&input); err != nil {
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

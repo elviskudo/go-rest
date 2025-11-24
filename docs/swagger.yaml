@@ -3,8 +3,63 @@ definitions:
   gin.H:
     additionalProperties: {}
     type: object
+  go-rest_internal_models.Category:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  go-rest_internal_models.Discount:
+    properties:
+      active:
+        type: boolean
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      end_date:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      percentage:
+        type: number
+      start_date:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  go-rest_internal_models.Inventory:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: string
+      item_id:
+        type: string
+      quantity:
+        type: integer
+      updated_at:
+        type: string
+      warehouse_id:
+        type: string
+    type: object
   go-rest_internal_models.Item:
     properties:
+      category_id:
+        type: string
       created_at:
         type: string
       deleted_at:
@@ -27,6 +82,8 @@ definitions:
         items:
           $ref: '#/definitions/go-rest_internal_models.Review'
         type: array
+      supplier_id:
+        type: string
       updated_at:
         type: string
       variants:
@@ -73,6 +130,68 @@ definitions:
       variant_id:
         type: string
     type: object
+  go-rest_internal_models.Permission:
+    properties:
+      action:
+        description: e.g., read, write, delete
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: string
+      resource:
+        description: e.g., items, users
+        type: string
+      updated_at:
+        type: string
+    type: object
+  go-rest_internal_models.PurchaseOrder:
+    properties:
+      created_at:
+        type: string
+      date:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/go-rest_internal_models.PurchaseOrderItem'
+        type: array
+      status:
+        description: Pending, Received, Cancelled
+        type: string
+      supplier_id:
+        type: string
+      total_amount:
+        type: number
+      updated_at:
+        type: string
+      warehouse_id:
+        type: string
+    type: object
+  go-rest_internal_models.PurchaseOrderItem:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: string
+      item_id:
+        type: string
+      purchase_order_id:
+        type: string
+      quantity:
+        type: integer
+      unit_price:
+        type: number
+      updated_at:
+        type: string
+    type: object
   go-rest_internal_models.Review:
     properties:
       comment:
@@ -92,6 +211,59 @@ definitions:
       user_id:
         type: string
     type: object
+  go-rest_internal_models.Role:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/go-rest_internal_models.Permission'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  go-rest_internal_models.Supplier:
+    properties:
+      address:
+        type: string
+      contact_info:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  go-rest_internal_models.User:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: string
+      role:
+        $ref: '#/definitions/go-rest_internal_models.Role'
+      role_id:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
   go-rest_internal_models.Variant:
     properties:
       created_at:
@@ -109,6 +281,23 @@ definitions:
         items:
           $ref: '#/definitions/go-rest_internal_models.Option'
         type: array
+      updated_at:
+        type: string
+    type: object
+  go-rest_internal_models.Warehouse:
+    properties:
+      capacity:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
       updated_at:
         type: string
     type: object
@@ -134,9 +323,487 @@ info:
   title: Inventory API
   version: "1.0"
 paths:
+  /categories:
+    get:
+      description: Get all product categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-rest_internal_models.Category'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: List categories
+      tags:
+      - categories
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new product category
+      parameters:
+      - description: Category Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Category Description
+        in: formData
+        name: description
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Category'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Create a category
+      tags:
+      - categories
+  /categories/{id}:
+    delete:
+      description: Delete a product category by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Delete a category
+      tags:
+      - categories
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Update a product category by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Category Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Category Description
+        in: formData
+        name: description
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Category'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Update a category
+      tags:
+      - categories
+  /discounts:
+    get:
+      description: Get all discounts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-rest_internal_models.Discount'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: List discounts
+      tags:
+      - discounts
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new discount
+      parameters:
+      - description: Discount Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Percentage
+        in: formData
+        name: percentage
+        required: true
+        type: number
+      - description: Start Date (RFC3339)
+        in: formData
+        name: start_date
+        required: true
+        type: string
+      - description: End Date (RFC3339)
+        in: formData
+        name: end_date
+        required: true
+        type: string
+      - description: Active
+        in: formData
+        name: active
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Discount'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Create a discount
+      tags:
+      - discounts
+  /discounts/{id}:
+    delete:
+      description: Delete a discount by ID
+      parameters:
+      - description: Discount ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Delete a discount
+      tags:
+      - discounts
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Update a discount by ID
+      parameters:
+      - description: Discount ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Discount Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Percentage
+        in: formData
+        name: percentage
+        required: true
+        type: number
+      - description: Start Date (RFC3339)
+        in: formData
+        name: start_date
+        required: true
+        type: string
+      - description: End Date (RFC3339)
+        in: formData
+        name: end_date
+        required: true
+        type: string
+      - description: Active
+        in: formData
+        name: active
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Discount'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Update a discount
+      tags:
+      - discounts
+  /inventory:
+    get:
+      description: Get inventory items with filters
+      parameters:
+      - description: Warehouse ID
+        in: query
+        name: warehouse_id
+        type: string
+      - description: Item ID
+        in: query
+        name: item_id
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-rest_internal_models.Inventory'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: List inventory
+      tags:
+      - inventory
+  /inventory/{id}:
+    delete:
+      description: Delete an inventory record
+      parameters:
+      - description: Inventory ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Delete inventory
+      tags:
+      - inventory
+    put:
+      consumes:
+      - application/json
+      description: Update inventory quantity manually (Correction)
+      parameters:
+      - description: Inventory ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Quantity Input
+        in: body
+        name: input
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Inventory'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Update inventory
+      tags:
+      - inventory
+  /inventory/add:
+    post:
+      consumes:
+      - application/json
+      description: Add stock to inventory
+      parameters:
+      - description: Stock Input
+        in: body
+        name: input
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Inventory'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Add stock
+      tags:
+      - inventory
+  /inventory/transfer:
+    post:
+      consumes:
+      - application/json
+      description: Transfer stock between warehouses
+      parameters:
+      - description: Transfer Input
+        in: body
+        name: input
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Transfer stock
+      tags:
+      - inventory
   /items:
     get:
-      description: Get all inventory items
+      description: Get all inventory items with pagination, search, and sort
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Sort field
+        in: query
+        name: sort
+        type: string
+      - description: Sort order (asc/desc)
+        in: query
+        name: order
+        type: string
       produces:
       - application/json
       responses:
@@ -271,6 +938,769 @@ paths:
       summary: Update an item
       tags:
       - items
+  /login:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Login with username and password to get JWT token
+      parameters:
+      - description: Username
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Login
+      tags:
+      - auth
+  /purchase-orders:
+    get:
+      description: Get all purchase orders with pagination, search, and sort
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Sort field
+        in: query
+        name: sort
+        type: string
+      - description: Sort order (asc/desc)
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-rest_internal_models.PurchaseOrder'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: List purchase orders
+      tags:
+      - purchase_orders
+    post:
+      consumes:
+      - application/json
+      description: Create a new purchase order
+      parameters:
+      - description: Purchase Order Input
+        in: body
+        name: input
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.PurchaseOrder'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Create a purchase order
+      tags:
+      - purchase_orders
+  /purchase-orders/{id}:
+    delete:
+      description: Delete a purchase order by ID
+      parameters:
+      - description: Purchase Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Delete a purchase order
+      tags:
+      - purchase_orders
+  /purchase-orders/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: Update status (e.g., Pending -> Received). Updates inventory if
+        Received.
+      parameters:
+      - description: Purchase Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Status Input
+        in: body
+        name: input
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.PurchaseOrder'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Update purchase order status
+      tags:
+      - purchase_orders
+  /rbac/permissions:
+    get:
+      description: Get all permissions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-rest_internal_models.Permission'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: List permissions
+      tags:
+      - rbac
+    post:
+      consumes:
+      - application/json
+      description: Create a new permission
+      parameters:
+      - description: Permission JSON
+        in: body
+        name: permission
+        required: true
+        schema:
+          $ref: '#/definitions/go-rest_internal_models.Permission'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Permission'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Create a permission
+      tags:
+      - rbac
+  /rbac/roles:
+    get:
+      description: Get all roles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-rest_internal_models.Role'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: List roles
+      tags:
+      - rbac
+    post:
+      consumes:
+      - application/json
+      description: Create a new role
+      parameters:
+      - description: Role JSON
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/go-rest_internal_models.Role'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Role'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Create a role
+      tags:
+      - rbac
+  /rbac/roles/{id}/permissions:
+    post:
+      consumes:
+      - application/json
+      description: Assign a list of permissions to a role
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Permission IDs
+        in: body
+        name: input
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Assign permissions to role
+      tags:
+      - rbac
+  /rbac/users/{id}/role:
+    post:
+      consumes:
+      - application/json
+      description: Assign a role to a user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Role ID
+        in: body
+        name: input
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Assign role to user
+      tags:
+      - rbac
+  /register:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Register a new user with username and password
+      parameters:
+      - description: Username
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Register a new user
+      tags:
+      - auth
+  /reports/dashboard:
+    get:
+      description: Get counts of items, warehouses, users, suppliers, and low stock
+        items
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Get dashboard summary
+      tags:
+      - reports
+  /reports/sales:
+    get:
+      description: Get daily sales aggregation
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: object
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Get sales report
+      tags:
+      - reports
+  /suppliers:
+    get:
+      description: Get all suppliers with pagination, search, and sort
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Sort field
+        in: query
+        name: sort
+        type: string
+      - description: Sort order (asc/desc)
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-rest_internal_models.Supplier'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: List suppliers
+      tags:
+      - suppliers
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new supplier
+      parameters:
+      - description: Supplier Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Contact Info
+        in: formData
+        name: contact_info
+        required: true
+        type: string
+      - description: Address
+        in: formData
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Supplier'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Create a supplier
+      tags:
+      - suppliers
+  /suppliers/{id}:
+    delete:
+      description: Delete a supplier by ID
+      parameters:
+      - description: Supplier ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Delete a supplier
+      tags:
+      - suppliers
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Update a supplier by ID
+      parameters:
+      - description: Supplier ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Supplier Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Contact Info
+        in: formData
+        name: contact_info
+        required: true
+        type: string
+      - description: Address
+        in: formData
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Supplier'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Update a supplier
+      tags:
+      - suppliers
+  /warehouses:
+    get:
+      description: Get all warehouses with pagination, search, and sort
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Sort field
+        in: query
+        name: sort
+        type: string
+      - description: Sort order (asc/desc)
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-rest_internal_models.Warehouse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: List warehouses
+      tags:
+      - warehouses
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new warehouse
+      parameters:
+      - description: Warehouse Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Location
+        in: formData
+        name: location
+        required: true
+        type: string
+      - description: Capacity
+        in: formData
+        name: capacity
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Warehouse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Create a warehouse
+      tags:
+      - warehouses
+  /warehouses/{id}:
+    delete:
+      description: Delete a warehouse by ID
+      parameters:
+      - description: Warehouse ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Delete a warehouse
+      tags:
+      - warehouses
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Update a warehouse by ID
+      parameters:
+      - description: Warehouse ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Warehouse Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Location
+        in: formData
+        name: location
+        required: true
+        type: string
+      - description: Capacity
+        in: formData
+        name: capacity
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Warehouse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Update a warehouse
+      tags:
+      - warehouses
 securityDefinitions:
   BearerAuth:
     in: header

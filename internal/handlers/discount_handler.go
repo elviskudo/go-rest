@@ -12,17 +12,21 @@ import (
 // @Summary      Create a discount
 // @Description  Create a new discount
 // @Tags         discounts
-// @Accept       json
+// @Accept       x-www-form-urlencoded
 // @Produce      json
-// @Param        discount  body      models.Discount  true  "Discount JSON"
-// @Success      201       {object}  models.Discount
-// @Failure      400       {object}  gin.H
-// @Failure      500       {object}  gin.H
+// @Param        name        formData  string   true  "Discount Name"
+// @Param        percentage  formData  number   true  "Percentage"
+// @Param        start_date  formData  string   true  "Start Date (RFC3339)"
+// @Param        end_date    formData  string   true  "End Date (RFC3339)"
+// @Param        active      formData  boolean  true  "Active"
+// @Success      201         {object}  models.Discount
+// @Failure      400         {object}  gin.H
+// @Failure      500         {object}  gin.H
 // @Security     BearerAuth
 // @Router       /discounts [post]
 func CreateDiscount(c *gin.Context) {
 	var discount models.Discount
-	if err := c.ShouldBindJSON(&discount); err != nil {
+	if err := c.ShouldBind(&discount); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -58,14 +62,18 @@ func GetDiscounts(c *gin.Context) {
 // @Summary      Update a discount
 // @Description  Update a discount by ID
 // @Tags         discounts
-// @Accept       json
+// @Accept       x-www-form-urlencoded
 // @Produce      json
-// @Param        id        path      string           true  "Discount ID"
-// @Param        discount  body      models.Discount  true  "Discount JSON"
-// @Success      200       {object}  models.Discount
-// @Failure      400       {object}  gin.H
-// @Failure      404       {object}  gin.H
-// @Failure      500       {object}  gin.H
+// @Param        id          path      string   true  "Discount ID"
+// @Param        name        formData  string   true  "Discount Name"
+// @Param        percentage  formData  number   true  "Percentage"
+// @Param        start_date  formData  string   true  "Start Date (RFC3339)"
+// @Param        end_date    formData  string   true  "End Date (RFC3339)"
+// @Param        active      formData  boolean  true  "Active"
+// @Success      200         {object}  models.Discount
+// @Failure      400         {object}  gin.H
+// @Failure      404         {object}  gin.H
+// @Failure      500         {object}  gin.H
 // @Security     BearerAuth
 // @Router       /discounts/{id} [put]
 func UpdateDiscount(c *gin.Context) {
@@ -77,7 +85,7 @@ func UpdateDiscount(c *gin.Context) {
 	}
 
 	var input models.Discount
-	if err := c.ShouldBindJSON(&input); err != nil {
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

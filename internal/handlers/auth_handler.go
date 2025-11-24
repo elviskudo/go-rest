@@ -18,16 +18,17 @@ import (
 // @Summary      Register a new user
 // @Description  Register a new user with username and password
 // @Tags         auth
-// @Accept       json
+// @Accept       x-www-form-urlencoded
 // @Produce      json
-// @Param        input  body      models.User  true  "User credentials"
-// @Success      201    {object}  models.User
-// @Failure      400    {object}  gin.H
-// @Failure      500    {object}  gin.H
+// @Param        username  formData  string  true  "Username"
+// @Param        password  formData  string  true  "Password"
+// @Success      201       {object}  models.User
+// @Failure      400       {object}  gin.H
+// @Failure      500       {object}  gin.H
 // @Router       /register [post]
 func Register(c *gin.Context) {
 	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := c.ShouldBind(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -51,17 +52,18 @@ func Register(c *gin.Context) {
 // @Summary      Login
 // @Description  Login with username and password to get JWT token
 // @Tags         auth
-// @Accept       json
+// @Accept       x-www-form-urlencoded
 // @Produce      json
-// @Param        input  body      models.User  true  "User credentials"
-// @Success      200    {object}  gin.H
-// @Failure      400    {object}  gin.H
-// @Failure      401    {object}  gin.H
-// @Failure      500    {object}  gin.H
+// @Param        username  formData  string  true  "Username"
+// @Param        password  formData  string  true  "Password"
+// @Success      200       {object}  gin.H
+// @Failure      400       {object}  gin.H
+// @Failure      401       {object}  gin.H
+// @Failure      500       {object}  gin.H
 // @Router       /login [post]
 func Login(c *gin.Context) {
 	var input models.User
-	if err := c.ShouldBindJSON(&input); err != nil {
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

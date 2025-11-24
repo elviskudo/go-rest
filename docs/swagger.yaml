@@ -1,0 +1,279 @@
+basePath: /api
+definitions:
+  gin.H:
+    additionalProperties: {}
+    type: object
+  go-rest_internal_models.Item:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        type: string
+      favorite_count:
+        type: integer
+      id:
+        type: string
+      media:
+        items:
+          $ref: '#/definitions/go-rest_internal_models.Media'
+        type: array
+      name:
+        type: string
+      price:
+        type: number
+      reviews:
+        items:
+          $ref: '#/definitions/go-rest_internal_models.Review'
+        type: array
+      updated_at:
+        type: string
+      variants:
+        items:
+          $ref: '#/definitions/go-rest_internal_models.Variant'
+        type: array
+      viewer_count:
+        description: Quantity removed, moved to Inventory
+        type: integer
+    type: object
+  go-rest_internal_models.Media:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: string
+      item_id:
+        type: string
+      public_id:
+        type: string
+      type:
+        description: '"image" or "video"'
+        type: string
+      updated_at:
+        type: string
+      url:
+        type: string
+    type: object
+  go-rest_internal_models.Option:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: string
+      name:
+        description: e.g., "Small", "Red"
+        type: string
+      updated_at:
+        type: string
+      variant_id:
+        type: string
+    type: object
+  go-rest_internal_models.Review:
+    properties:
+      comment:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: string
+      item_id:
+        type: string
+      rating:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  go-rest_internal_models.Variant:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: string
+      item_id:
+        type: string
+      name:
+        description: e.g., "Size", "Color"
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/go-rest_internal_models.Option'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+host: localhost:8081
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample Inventory management server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Inventory API
+  version: "1.0"
+paths:
+  /items:
+    get:
+      description: Get all inventory items
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-rest_internal_models.Item'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: List items
+      tags:
+      - items
+    post:
+      consumes:
+      - application/json
+      description: Create a new inventory item
+      parameters:
+      - description: Item JSON
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/go-rest_internal_models.Item'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Item'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Create a new item
+      tags:
+      - items
+  /items/{id}:
+    delete:
+      description: Delete an inventory item by ID
+      parameters:
+      - description: Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Delete an item
+      tags:
+      - items
+    get:
+      description: Get an inventory item by ID
+      parameters:
+      - description: Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Item'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Get an item
+      tags:
+      - items
+    put:
+      consumes:
+      - application/json
+      description: Update an inventory item by ID
+      parameters:
+      - description: Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Item JSON
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/go-rest_internal_models.Item'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-rest_internal_models.Item'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Update an item
+      tags:
+      - items
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

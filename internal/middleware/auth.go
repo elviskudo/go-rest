@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 var jwtSecret = []byte("your_secret_key") // Should match the one in handlers
@@ -38,6 +39,16 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return
+		}
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			// Parse user_id from claims
+			// We expect user_id to be a string (UUID)
+			if idStr, ok := claims["user_id"].(string); ok {
+				if uid, err := uuid.Parse(idStr); err == nil {
+					c.Set("userID", uid)
+				}
+			}
 		}
 
 		c.Next()

@@ -1,0 +1,7 @@
+inventory.db
+.env
+.git
+.idea
+.vscode
+server
+tmp
